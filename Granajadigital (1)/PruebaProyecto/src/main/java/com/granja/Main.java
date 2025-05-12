@@ -1,6 +1,7 @@
 package main.java.com.granja;
 
 import main.java.com.granja.util.Logger;
+import main.java.com.granja.util.EntradaSegura;
 import main.java.com.granja.model.Animal;
 import main.java.com.granja.service.AnimalService;
 import main.java.com.granja.model.Animal.EstadoSalud;
