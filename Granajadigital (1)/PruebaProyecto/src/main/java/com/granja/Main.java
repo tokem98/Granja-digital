@@ -29,7 +29,7 @@ public class Main {
             Logger.log("Iniciando aplicación");
             while (true) {
                 mostrarMenu();
-                int opcion = Integer.parseInt(scanner.nextLine());
+                int opcion = EntradaSegura.leerEnteroSeguro(scanner, "Seleccione una opción (1-4): ");
                 
                 switch (opcion) {
                     case 1 -> gestionAnimales();
@@ -70,7 +70,7 @@ public class Main {
                 System.out.println("4. Listar animales");
                 System.out.println("5. Volver al menú principal");
                 System.out.print("Seleccione una opción: ");
-                int opcion = Integer.parseInt(scanner.nextLine());
+                int opcion = EntradaSegura.leerEnteroSeguro(scanner, "Seleccione una opción (1-5): ");
                 
                 switch (opcion) {
                     case 1 -> registrarAnimal();
@@ -99,8 +99,7 @@ public class Main {
                 System.out.println("3. Eliminar empleado");
                 System.out.println("4. Listar empleados");
                 System.out.println("5. Volver al menú principal");
-                System.out.print("Seleccione una opción: ");
-                int opcion = Integer.parseInt(scanner.nextLine());
+                int opcion = EntradaSegura.leerEnteroSeguro(scanner, "Seleccione una opción (1-5): ");
                 
                 switch (opcion) {
                     case 1 -> registrarEmpleado();
@@ -129,8 +128,7 @@ public class Main {
                 System.out.println("3. Eliminar actividad");
                 System.out.println("4. Listar actividades");
                 System.out.println("5. Volver al menú principal");
-                System.out.print("Seleccione una opción: ");
-                int opcion = Integer.parseInt(scanner.nextLine());
+                int opcion = EntradaSegura.leerEnteroSeguro(scanner, "Seleccione una opción (1-5): ");
                 
                 switch (opcion) {
                     case 1 -> registrarActividad();
@@ -154,29 +152,30 @@ public class Main {
         try {
             System.out.println("\n=== REGISTRAR NUEVO ANIMAL ===");
             
-            System.out.print("Identificador (ej. BOV-001): ");
-            String identificador = scanner.nextLine();
+            String identificador;
+            while (true) {
+            identificador = EntradaSegura.leerCadena(scanner, "Identificador (ej. BOV-001): ");
+            if (identificador.matches("[A-Z]{3}-\\d{3}")) break;
+            System.out.println("Formato inválido. Debe ser XXX-000 (3 letras mayúsculas, guión, 3 números)");
+            }
             
-            System.out.print("Especie: ");
-            String especie = scanner.nextLine();
+            String especie = EntradaSegura.leerNombreSeguro(scanner, "Especie: ");
+            String raza = EntradaSegura.leerNombreSeguro(scanner, "Raza: ");
+            LocalDate fechaNacimiento = EntradaSegura.leerFechaSegura(scanner, "Fecha de nacimiento (dd/MM/yyyy): ");
             
-            System.out.print("Raza: ");
-            String raza = scanner.nextLine();
+            System.out.println("Estado de salud:");
+            for (int i = 0; i < EstadoSalud.values().length; i++) {
+                System.out.println((i + 1) + ". " + EstadoSalud.values()[i]);
+            }
+            int estadoSaludIndex = EntradaSegura.leerEnteroSeguro(scanner, 
+                "Seleccione el estado de salud: ") - 1;
+            EstadoSalud estadoSalud = EstadoSalud.values()[estadoSaludIndex];
             
-            System.out.print("Fecha de nacimiento (dd/MM/yyyy): ");
-            LocalDate fechaNacimiento = LocalDate.parse(scanner.nextLine(), DATE_FORMATTER);
-            
-            System.out.println("Estado de salud (1-EXCELENTE, 2-BUENO, 3-REGULAR, 4-MALO, 5-CRITICO): ");
-            EstadoSalud estadoSalud = EstadoSalud.values()[Integer.parseInt(scanner.nextLine()) - 1];
-            
-            System.out.print("Ubicación: ");
-            String ubicacion = scanner.nextLine();
+            String ubicacion = EntradaSegura.leerCadena(scanner, "Ubicación: ");
             
             Animal animal = new Animal(identificador, especie, raza, fechaNacimiento, estadoSalud, ubicacion);
             animalService.registrarAnimal(animal);
-            
             System.out.println("Animal registrado con éxito!");
-            
         } catch (Exception e) {
             System.out.println("Error al registrar animal: " + e.getMessage());
             Logger.error("Error en registro de animal", e);
@@ -213,49 +212,47 @@ public class Main {
     private static void editarAnimal() {
         try {
             listarAnimales();
-            System.out.print("\nIngrese el ID del animal a editar: ");
-            int id = Integer.parseInt(scanner.nextLine());
-            
-            Animal animal = animalService.buscarPorId(id);
+            int id = EntradaSegura.leerEnteroSeguro(scanner, "Ingrese el ID del animal a editar: ");
+            Animal animal = animalService.buscarAnimalPorId(id);
             if (animal == null) {
                 System.out.println("Animal no encontrado");
                 return;
             }
-
-            System.out.println("Ingrese los nuevos datos (Enter para mantener el valor actual):");
             
-            System.out.print("Ubicación [" + animal.getUbicacion() + "]: ");
-            String ubicacion = scanner.nextLine();
-            if (!ubicacion.isEmpty()) {
-                animal.setUbicacion(ubicacion);
-            }
+            System.out.println("\nEditando animal ID: " + animal.getId());
+            System.out.println("Deja en blanco para mantener el valor actual.");
             
-            System.out.println("Estado de salud actual [" + animal.getEstadoSalud() + "]");
-            System.out.println("Nueva salud (1-EXCELENTE, 2-BUENO, 3-REGULAR, 4-MALO, 5-CRITICO, Enter para mantener): ");
-            String saludStr = scanner.nextLine();
-            if (!saludStr.isEmpty()) {
-                animal.setEstadoSalud(EstadoSalud.values()[Integer.parseInt(saludStr) - 1]);
-            }
+            String nuevaEspecie = EntradaSegura.leerCadenaOpcional(scanner, "Especie", animal.getEspecie());
+            String nuevaRaza = EntradaSegura.leerCadenaOpcional(scanner, "Raza", animal.getRaza());
+            String nuevaUbicacion = EntradaSegura.leerCadenaOpcional(scanner, "Ubicación", animal.getUbicacion());
+            
+            animal.setEspecie(nuevaEspecie);
+            animal.setRaza(nuevaRaza);
+            animal.setUbicacion(nuevaUbicacion);
             
             animalService.actualizarAnimal(animal);
-            System.out.println("Animal actualizado con éxito!");
-            
+            System.out.println("Animal actualizado con éxito.");
         } catch (Exception e) {
             System.out.println("Error al editar animal: " + e.getMessage());
             Logger.error("Error en edición de animal", e);
         }
     }
-
+    
     private static void eliminarAnimal() {
         try {
             listarAnimales();
-            System.out.print("\nIngrese el ID del animal a eliminar: ");
-            int id = Integer.parseInt(scanner.nextLine());
+            int id = EntradaSegura.leerEnteroSeguro(scanner, "Ingrese el ID del animal a eliminar: ");
+            boolean confirmacion = confirmarAccion("¿Está seguro que desea eliminar este animal? (s/n): ");
+            if (!confirmacion) {
+                System.out.println("Eliminación cancelada.");
+                return;
+            }
             
-            System.out.print("¿Está seguro de eliminar el animal? (S/N): ");
-            if (scanner.nextLine().equalsIgnoreCase("S")) {
-                animalService.eliminarAnimal(id);
-                System.out.println("Animal eliminado con éxito!");
+            boolean eliminado = animalService.eliminarAnimal(id);
+            if (eliminado) {
+                System.out.println("Animal eliminado con éxito.");
+            } else {
+                System.out.println("No se encontró un animal con ese ID.");
             }
         } catch (Exception e) {
             System.out.println("Error al eliminar animal: " + e.getMessage());
