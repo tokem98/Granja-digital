@@ -242,6 +242,7 @@ public class Main {
     private static void eliminarAnimal() {
         try {
             listarAnimales();
+            //Seguramente haya que cambiar el metodo "leerEnteroSeguro" por "leerCadenaSegura", ya que el formato del id no es válido para ese metodo.
             int id = EntradaSegura.leerEnteroSeguro(scanner, "Ingrese el ID del animal a eliminar: ");
             boolean confirmacion = confirmarAccion("¿Está seguro que desea eliminar este animal? (s/n): ");
             if (!confirmacion) {
